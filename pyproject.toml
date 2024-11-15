@@ -1,0 +1,7 @@
+[project]
+name = 'bepp'
+version = '0.0.1'
+description = 'An opinionated script to gather, clean up and merge transactions from Banca Etica and PayPal.'
+readme = 'README.md'
+requires-python = '>=3.13'
+dependencies = ['pandas>=2.2.3', 'xlrd>=2.0.1']

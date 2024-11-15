@@ -1,0 +1,18 @@
+# Imported and exported transaction files
+Download.CSV
+estrattocontoitalia.xls
+transactions.csv
+
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# uv
+uv.lock
