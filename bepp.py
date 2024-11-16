@@ -112,9 +112,8 @@ def main():
 	all = pd.concat([be, pp], axis=0, ignore_index=True)
 	all = all.sort_values(by='date', ascending=False)
 
-	print(all)
-
-	all.to_csv(output_dir + 'BEPP.csv', index=False, date_format='%Y-%m-%d')
+	if args.merge:
+		all.to_csv(output_dir + 'BEPP.csv', index=False, date_format='%Y-%m-%d')
 
 	if args.backup:
 		be_merged.to_csv(output_dir + 'Banca Etica - original.csv', index=False)
