@@ -5,6 +5,7 @@ description = 'An opinionated script to gather, clean up and merge transactions 
 readme = 'README.md'
 requires-python = '>=3.13'
 dependencies = [
+	'currencyconverter>=0.17.34',
 	'pandas>=2.2.3',
 	'xlrd>=2.0.1'
 ]

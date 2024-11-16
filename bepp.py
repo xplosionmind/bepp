@@ -1,5 +1,12 @@
 import pandas as pd
 import xlrd
+from currency_converter import CurrencyConverter
+
+def convert_to_eur(date ,amount, currency):
+	c = CurrencyConverter(fallback_on_missing_rate=True)
+	if currency != 'EUR':
+		amount = round(c.convert(amount, currency, 'EUR', date=date), 2)
+	return amount
 
 def main():
 	be = pd.DataFrame(pd.read_excel(
@@ -11,7 +18,7 @@ def main():
 	be.pop('Data contabile')
 
 	be.insert(2,'amount', be['Dare'].fillna(be['Avere']))
-	be.drop(['Dare', 'Avere', 'Causale'], axis=1, inplace=True)
+	be = be[['Valuta', 'amount', 'Divisa', 'Descrizione']]
 
 	be['Descrizione'] = be['Descrizione'].str.replace(r'(?i)(?:.* FAVORE |(Pagamenti|accredito).* A )(?P<who>.*)(?: IND\.ORD\..* Note: | Valuta.*C\/O )(?P<what>.*)(:? ID\..*| CARTA.*)', r'\g<who>, \g<what>', regex=True)
 	be['Descrizione'] = be['Descrizione'].str.replace(r'(?i).* FAVORE (?P<who>.*) IND\.ORD\..* Note: (?P<what>.*)', r'\g<who>, \g<what>', regex=True)
@@ -21,6 +28,9 @@ def main():
 		'Divisa' : 'currency',
 		'Descrizione' : 'note'
 	})
+
+	if any(be['currency'] != 'EUR'):
+		be['amount'] = be.apply(lambda row: convert_to_eur(row['date'], row['amount'], row['currency']), axis=1)
 
 	print(be)
 
@@ -44,6 +54,9 @@ def main():
 		'Valuta' : 'currency',
 		'Messaggio' : 'note'
 	})
+
+	if any(pp['currency'] != 'EUR'):
+		pp['amount'] = pp.apply(lambda row: convert_to_eur(row['date'], row['amount'], row['currency']), axis=1)
 
 	print(pp)
 
