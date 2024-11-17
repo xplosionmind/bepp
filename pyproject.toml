@@ -1,13 +1,50 @@
 [project]
 name = 'bepp'
-version = '0.0.1'
+version = '0.0.2'
 description = 'An opinionated script to gather, clean up and merge transactions from Banca Etica and PayPal.'
+authors = [{ name = 'Tommi', email = 'surfing@tommi.space' }]
 readme = 'README.md'
+license = { file = 'LICENSE' }
 requires-python = '>=3.13'
 dependencies = [
 	'currencyconverter>=0.17.34',
 	'pandas>=2.2.3',
 	'rich-argparse>=1.6.0',
 	'rich>=13.9.4',
-	'xlrd>=2.0.1'
+	'xlrd>=2.0.1',
 ]
+keywords = [
+	'Banca Etica',
+	'PayPal',
+	'Accounting',
+	'Personal Finance Management',
+	'Bank transfers',
+	'Bank',
+]
+classifiers = [
+	'License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)',
+	'Development Status :: 4 - Beta',
+	'Environment :: Console',
+	'Natural Language :: English',
+	'Natural Language :: Italian',
+	'Operating System :: OS Independent',
+	'Programming Language :: Python :: 3',
+	'Programming Language :: Python :: 3.13',
+	'Topic :: Database',
+	'Topic :: Office/Business :: Financial :: Accounting',
+	'Topic :: Office/Business :: Financial :: Spreadsheet',
+	'Topic :: Scientific/Engineering :: Information Analysis',
+	'Topic :: Utilities',
+]
+
+[project.urls]
+Repository = 'https://codeberg.org/tommi/bepp'
+Issues = 'https://codeberg.org/tommi/bepp/issues'
+Changelog = 'https://codeberg.org/tommi/bepp/commits/branch/main'
+
+[project.scripts]
+bepp = 'bepp:main'
+
+[build-system]
+requires = ['hatchling']
+build-backend = 'hatchling.build'
