@@ -88,6 +88,7 @@ def main():
 	pp_list = []
 	for f in pp_files:
 		pp_file = pd.DataFrame(pd.read_csv(f))
+		pp_file = pp_file.dropna(axis='columns', how='all')
 		pp_list.append(pp_file)
 
 	pp = pp_merged = pd.concat(pp_list, ignore_index=True)
