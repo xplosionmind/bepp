@@ -32,7 +32,7 @@ def main():
 	args = parser.parse_args()
 
 	dir = args.directory
-	output_dir = args.output_dir or dir + bepp_export
+	output_dir = args.output_dir or dir + 'bepp_export'
 	if not output_dir.endswith('/'):
 		output_dir = output_dir + '/'
 	os.makedirs(output_dir, exist_ok=True)
