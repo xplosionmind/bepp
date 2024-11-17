@@ -102,7 +102,7 @@ def main():
 	pp['Lordo'] = pd.to_numeric(pp['Lordo'].str.replace('.', '', regex=False).str.replace(',', '.', regex=False))
 
 	pp['Messaggio'] = pp['Nome'] + pp['Messaggio'].apply(lambda msg: f', {msg}' if pd.notna(msg) else '') + pp['Oggetto'].apply(lambda obj: f', {obj}' if pd.notna(obj) else '')
-	pp.drop(['Nome', 'Oggetto'], axis=1, inplace=True)
+	pp.drop(['Nome', 'Oggetto'], axis='columns', inplace=True)
 
 	pp = pp.rename(columns={
 		'Lordo' : 'amount',
