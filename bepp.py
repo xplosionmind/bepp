@@ -125,5 +125,5 @@ def main():
 		be_merged.to_csv(output_dir + 'Banca Etica - original.csv', index=False)
 		pp_merged.to_csv(output_dir + 'Pay Pal - original.csv', index=False)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 	main()
