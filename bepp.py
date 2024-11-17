@@ -27,6 +27,7 @@ def main():
 	parser.add_argument('directory', help='Directory containing the source files.')
 	parser.add_argument('-m', '--merge', action='store_true', help='Merge the PayPal’s and Banca Etica’s transaction summaries in one unique CSV')
 	parser.add_argument('-b', '--backup', action='store_true', help='Save two separate backups containing all the merged original transactions')
+	parser.add_argument('-p', '--pp_duplicates', action='store_false', help='Pass this flag to avoid removing PayPal transactions from Banca Etica')
 	parser.add_argument('-c', '--convert_to_eur', action='store_true', help='Convert transactions in other currencies to €.\n[bold]NOTE[/bold]: This slows things down very heavily!')
 	parser.add_argument('-o', '--output_dir', metavar='OUTPUT', type=str, help='Specify an output directory (the default is the input directory)')
 	args = parser.parse_args()
@@ -65,6 +66,9 @@ def main():
 	be.insert(2,'amount', be['Dare'].fillna(be['Avere']))
 	be = be[['Valuta', 'amount', 'Divisa', 'Descrizione']]
 	be = be.sort_values(by='Valuta', ascending=False)
+
+	if args.pp_duplicates:
+		be = be[~be['Descrizione'].str.contains(r'(?i)PayPal', regex=True)]
 
 	be['Descrizione'] = be['Descrizione'].str.replace(r'(?i)(?:.* FAVORE |(Pagamenti|accredito).* A )(?P<who>.*)(?: IND\.ORD\..* Note: | Valuta.*C\/O )(?P<what>.*)(:? ID\..*| CARTA.*)', r'\g<who>, \g<what>', regex=True)
 	be['Descrizione'] = be['Descrizione'].str.replace(r'(?i).* FAVORE (?P<who>.*) IND\.ORD\..* Note: (?P<what>.*)', r'\g<who>, \g<what>', regex=True)
