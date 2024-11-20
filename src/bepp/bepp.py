@@ -38,7 +38,7 @@ def main():
 	parser.add_argument('-n', '--note', action='store_true', help='Only print the note/description.')
 	parser.add_argument('-o', '--output_dir', metavar='OUTPUT_DIR', type=str, help='Specify an output directory (default: “bepp_export” subdirectory in the input dir).')
 	parser.add_argument('-p', '--keep_pp_dupes', action='store_true', help='Prevent from removing PayPal transactions from Banca Etica.')
-	parser.add_argument('-t', '--timeline', action='store_true', help='Plot a timeline of the spending.')
+	parser.add_argument('-t', '--timeline', action='store_true', help='Plot a timeline graph of the spendings.')
 	args = parser.parse_args()
 
 	dir = args.directory

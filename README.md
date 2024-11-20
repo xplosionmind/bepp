@@ -24,12 +24,14 @@ I wrote this script to learn and practice with Python and [pandas](https://panda
 | argument | type | default | description |
 |---|---|---|---|
 | **`input/path/`** | string | **Required** | Input directory, containing the source CSV and Excel files. |
-| `-d`, `--dry_run` | boolean | False | Run the script without changing or printing anything. |
 | `-b`, `--backup` | boolean | False | Save one CSV backup per kind containing all the original transactions, with no modification. |
 | `-c`, `--convert_to_eur` | boolean | False | Convert transactions in other currencies to €. **Note**: This *heavily* slows down the process! |
+| `-d`, `--dry_run` | boolean | False | Run the script without changing or printing anything. |
 | `-m`, `--merge` | boolean | False | Merge the PayPal’s and Banca Etica’s transaction summaries in one unique CSV. |
+| `-n`, `--note` | Only print the note/description (useful for debugging description regexs). |
 | `-o`, `--output_dir` | string | `input/path/`<br>+<br>`bepp_export/` | Specify an output directory. |
 | `-p`, `--keep_pp_dupes` | boolean | False | Prevent from removing PayPal transactions in Banca Etica’s logs. |
+| `-t`, `--timeline` | Plot a timeline graph of the spendings. |
 
 **Note**: Bepp assumes that inside the specified directory all Excel files are Banca Etica’s “estratto conto” files, and all CSV files are PayPal transaction summaries.
 
