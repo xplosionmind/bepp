@@ -43,12 +43,12 @@ def main():
 		sys.exit(1)
 
 	output_dir = args.output_dir or os.path.join(dir, 'bepp_export')
-	if not os.path.isdir(output_dir):
-		print(f'[bold red]Error[/bold red]: “{output_dir}” is not a valid directory.')
-		sys.exit(1)
-
-	if not args.dry_run:
-		os.makedirs(output_dir, exist_ok=True)
+	if os.path.exists(output_dir):
+		if not os.path.isdir(output_dir):
+			print(f'[bold red]Error[/bold red]: “{output_dir}” is not a directory.')
+			sys.exit(1)
+	elif not args.dry_run:
+		os.makedirs(output_dir)
 
 	print(f'Reading from {os.path.abspath(dir)}…')
 
