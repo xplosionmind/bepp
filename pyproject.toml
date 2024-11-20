@@ -1,6 +1,6 @@
 [project]
 name = 'bepp'
-version = '0.0.2'
+version = '0.0.3'
 description = 'An opinionated script to gather, clean up and merge transactions from Banca Etica and PayPal.'
 authors = [{ name = 'Tommi', email = 'surfing@tommi.space' }]
 readme = 'README.md'
