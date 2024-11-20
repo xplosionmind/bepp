@@ -33,6 +33,7 @@ def main():
 	parser.add_argument('-c', '--convert_to_eur', action='store_true', help='Convert transactions in other currencies to €.\n[bold]NOTE[/bold]: This slows things down very heavily!')
 	parser.add_argument('-d', '--dry_run', action='store_true', help='Run the script without changing or printing anything.')
 	parser.add_argument('-m', '--merge', action='store_true', help='Merge the PayPal’s and Banca Etica’s transaction summaries in one unique CSV.')
+	parser.add_argument('-n', '--note', action='store_true', help='Only print the note/description.')
 	parser.add_argument('-o', '--output_dir', metavar='OUTPUT_DIR', type=str, help='Specify an output directory (default: “bepp_export” subdirectory in the input dir).')
 	parser.add_argument('-p', '--keep_pp_dupes', action='store_true', help='Prevent from removing PayPal transactions from Banca Etica.')
 	args = parser.parse_args()
@@ -148,7 +149,9 @@ def main():
 	all = all.sort_values(by='date', ascending=False)
 
 	if args.merge and not args.dry_run:
-		all.to_csv(os.path.join(output_dir, 'BEPP.csv'), index=False, date_format='%Y-%m-%d')
+		if args.note:
+			all = all['note']
+		all.to_csv(os.path.join(output_dir, 'Bepp.csv'), index=False, date_format='%Y-%m-%d')
 
 	if args.backup and not args.dry_run:
 		be_merged.to_csv(os.path.join(output_dir, 'Banca Etica - original.csv'), index=False)
