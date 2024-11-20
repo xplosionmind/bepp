@@ -81,8 +81,22 @@ def main():
 	if not args.keep_pp_dupes:
 		be = be[~be['Descrizione'].str.contains(r'(?i)PayPal', regex=True)]
 
-	be['Descrizione'] = be['Descrizione'].str.replace(r'(?i)(?:.* FAVORE |(Pagamenti|accredito).* A )(?P<who>.*)(?: IND\.ORD\..* Note: | Valuta.*C\/O )(?P<what>.*)(:? ID\..*| CARTA.*)', r'\g<who>, \g<what>', regex=True)
-	be['Descrizione'] = be['Descrizione'].str.replace(r'(?i).* FAVORE (?P<who>.*) IND\.ORD\..* Note: (?P<what>.*)', r'\g<who>, \g<what>', regex=True)
+	be_regexs = {
+		r'(?i)ADDEBITO BONIFICO .* BANKING (?P<who>.*) Bonifico disposto in.* Cro: \S+ (?P<what>.*)' : r'\g<who>, \g<what>',
+		r'(?i)BONIFICO .* FAVORE (?P<who>.*) (?:IND\.ORD|Data [R,A]).* Note: (?P<what>.*) ID\.OPER.*' : r'\g<who>, \g<what>',
+		r'(?i)BONIFICO .* FAVORE (?P<who>.*) (?:IND\.ORD|Data [R,A]).* Note: (?P<what>.*)' : r'\g<who>, \g<what>',
+		r'(?i)BONIFICO .* FAVORE (.*)' : r'\1',
+		r'(?i)Pagamenti paesi .* A (?P<who>.*) Valuta .* C\/O (?P<what>.*) CARTA N\..*' : r'\g<who>, \g<what>',
+		r'(?i)Prelievi paesi .* A (?P<who>.*) Valuta .* C\/O (?P<what>.*) CARTA N\..*' : r'PRELIEVO: \g<who>, \g<what>',
+		r'(?i)ACCREDITO VISA .* A (?P<who>.*) Valuta .* C\/O (?P<what>.*) CARTA N\..*' : r'\g<who>, \g<what>',
+		r'(?i)ADDEBITO DIRETTO CORE \S+ Prg\.Car\...\S+ \S+ (.*)' : r'\1',
+		r'(?i)PAGAMENTO NEXI.*Presso: (.*)' : r'\1',
+		r'(?i)SUMUP \*(.*)' : r'\1',
+		r'(?i)PAGAMENTI DIVERSI (.*)' : r'\1'
+	}
+
+	for pattern, replacement in be_regexs.items():
+		be['Descrizione'] = be['Descrizione'].str.replace(pattern, replacement, regex=True)
 
 	be = be.rename(columns={
 		'Valuta' : 'date',
