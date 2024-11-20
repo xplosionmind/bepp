@@ -3,6 +3,8 @@ import sys
 import glob
 import argparse
 import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdt
 from rich import print
 from rich_argparse import RichHelpFormatter
 from currency_converter import CurrencyConverter
@@ -36,6 +38,7 @@ def main():
 	parser.add_argument('-n', '--note', action='store_true', help='Only print the note/description.')
 	parser.add_argument('-o', '--output_dir', metavar='OUTPUT_DIR', type=str, help='Specify an output directory (default: “bepp_export” subdirectory in the input dir).')
 	parser.add_argument('-p', '--keep_pp_dupes', action='store_true', help='Prevent from removing PayPal transactions from Banca Etica.')
+	parser.add_argument('-t', '--timeline', action='store_true', help='Plot a timeline of the spending.')
 	args = parser.parse_args()
 
 	dir = args.directory
@@ -163,6 +166,23 @@ def main():
 	if args.dry_run:
 		print(all)
 		all.info()
+
+	if args.timeline:
+		income_all = all[all['amount'] > 0]
+		expenses_all = all[all['amount'] < 0]
+		plt.figure()
+		plt.scatter(income_all['date'], income_all['amount'], color='green', label='Income', alpha=0.5)
+		plt.scatter(expenses_all['date'], expenses_all['amount'], color='red', label='Expenses', alpha=0.5)
+		plt.plot(all['date'], all['amount'].cumsum(), 'b-', label='Cash flow')
+		plt.title('Cash Flow Over Time')
+		plt.xlabel('Date')
+		plt.ylabel('Amount')
+		#plt.grid(True)
+		plt.legend()
+		plt.gca().xaxis.set_major_formatter(mdt.DateFormatter('%Y-%m-%d'))
+		plt.gcf().autofmt_xdate()
+		plt.tight_layout()
+		plt.show()
 
 if __name__ == '__main__':
 	main()
