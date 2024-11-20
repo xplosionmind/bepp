@@ -28,10 +28,10 @@ I wrote this script to learn and practice with Python and [pandas](https://panda
 | `-c`, `--convert_to_eur` | boolean | False | Convert transactions in other currencies to €. **Note**: This *heavily* slows down the process! |
 | `-d`, `--dry_run` | boolean | False | Run the script without changing or printing anything. |
 | `-m`, `--merge` | boolean | False | Merge the PayPal’s and Banca Etica’s transaction summaries in one unique CSV. |
-| `-n`, `--note` | Only print the note/description (useful for debugging description regexs). |
+| `-n`, `--note` | boolean | False | Only print the note/description (useful for debugging description regexs). |
 | `-o`, `--output_dir` | string | `input/path/`<br>+<br>`bepp_export/` | Specify an output directory. |
 | `-p`, `--keep_pp_dupes` | boolean | False | Prevent from removing PayPal transactions in Banca Etica’s logs. |
-| `-t`, `--timeline` | Plot a timeline graph of the spendings. |
+| `-t`, `--timeline` | boolean | False | Plot a timeline graph of the spendings. |
 
 **Note**: Bepp assumes that inside the specified directory all Excel files are Banca Etica’s “estratto conto” files, and all CSV files are PayPal transaction summaries.
 
