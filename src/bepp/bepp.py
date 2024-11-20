@@ -53,7 +53,9 @@ def main():
 	print(f'Reading from {os.path.abspath(dir)}…')
 
 	be_files = glob.glob(os.path.join(dir, '*.xls'))
+	be_files.sort()
 	pp_files = glob.glob(os.path.join(dir, '*.CSV')) + glob.glob(os.path.join(dir, '*.csv'))
+	pp_files.sort()
 
 	if not be_files or not pp_files:
 		print('No Excel files (Banca Etica’s export format) or CSV files (PayPal’s export format) found in the specified directory.')
