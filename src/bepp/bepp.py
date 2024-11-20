@@ -31,7 +31,7 @@ def main():
 	parser.add_argument('directory', metavar='INPUT_DIR', help='Directory containing the source files.')
 	parser.add_argument('-b', '--backup', action='store_true', help='Save two separate backups containing all the merged original transactions.')
 	parser.add_argument('-c', '--convert_to_eur', action='store_true', help='Convert transactions in other currencies to €.\n[bold]NOTE[/bold]: This slows things down very heavily!')
-	parser.add_argument('-d', '--dry_run', action='store_false', help='Run the script without changing or printing anything.')
+	parser.add_argument('-d', '--dry_run', action='store_true', help='Run the script without changing or printing anything.')
 	parser.add_argument('-m', '--merge', action='store_true', help='Merge the PayPal’s and Banca Etica’s transaction summaries in one unique CSV.')
 	parser.add_argument('-o', '--output_dir', metavar='OUTPUT_DIR', type=str, help='Specify an output directory (default: “bepp_export” subdirectory in the input dir).')
 	parser.add_argument('-p', '--keep_pp_dupes', action='store_true', help='Prevent from removing PayPal transactions from Banca Etica.')
