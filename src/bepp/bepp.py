@@ -105,7 +105,7 @@ def main():
 	})
 
 	if any(be['currency'] != 'EUR') and args.convert_to_eur:
-		be['amount'] = be.apply(lambda row: convert_to_eur(row['date'], row['amount'], row['currency']), axis=1)
+		be['amount'] = pd.to_numeric(be.apply(lambda row: convert_to_eur(row['date'], row['amount'], row['currency']), axis=1))
 		be.drop('currency', axis='columns')
 
 	print('PayPal logs found:')
@@ -144,6 +144,7 @@ def main():
 		pp.to_csv(os.path.join(output_dir, 'PayPal.csv'), index=False, date_format='%Y-%m-%d')
 
 	all = pd.concat([be, pp], axis=0, ignore_index=True)
+	all['amount'] = pd.to_numeric(all['amount'])
 	all = all.sort_values(by='date', ascending=False)
 
 	if args.merge and not args.dry_run:
