@@ -143,6 +143,7 @@ def main():
 	if not args.merge and not args.dry_run:
 		be.to_csv(os.path.join(output_dir, 'Banca Etica.csv'), index=False, date_format='%Y-%m-%d')
 		pp.to_csv(os.path.join(output_dir, 'PayPal.csv'), index=False, date_format='%Y-%m-%d')
+		print(f'[bold green]Success![/bold green] Files exported in {os.path.abspath(output_dir)}')
 
 	all = pd.concat([be, pp], axis=0, ignore_index=True)
 	all['amount'] = pd.to_numeric(all['amount'])
@@ -152,10 +153,16 @@ def main():
 		if args.note:
 			all = all['note']
 		all.to_csv(os.path.join(output_dir, 'Bepp.csv'), index=False, date_format='%Y-%m-%d')
+		print(f'[bold green]Success![/bold green] “Bepp.csv” exported in {os.path.abspath(output_dir)}')
 
 	if args.backup and not args.dry_run:
 		be_merged.to_csv(os.path.join(output_dir, 'Banca Etica - original.csv'), index=False)
 		pp_merged.to_csv(os.path.join(output_dir, 'Pay Pal - original.csv'), index=False)
+		print(f'[italic]Backup files exported in {os.path.abspath(output_dir)}[/italic]')
+
+	if args.dry_run:
+		print(all)
+		all.info()
 
 if __name__ == '__main__':
 	main()
