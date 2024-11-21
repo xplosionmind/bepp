@@ -3,8 +3,9 @@ import sys
 import glob
 import argparse
 import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdt
+import plotly.graph_objects as go
+import plotly.io as pio
+from plotly.subplots import make_subplots
 from rich import print
 from rich_argparse import RichHelpFormatter
 from currency_converter import CurrencyConverter
@@ -22,6 +23,95 @@ def convert_to_eur(date ,amount, currency):
 	if currency != 'EUR':
 		amount = round(c.convert(amount, currency, 'EUR', date=date), 2)
 	return amount
+
+def print_graph(all, output_dir, dry_run):
+	print('Generating timeline graph…')
+	fig = make_subplots(
+		rows=2, cols=1,
+		shared_xaxes=True,
+		vertical_spacing=0.1,
+		subplot_titles=(
+			'Cash Flow Over Time',
+			'Individual Transactions'
+		)
+	)
+
+	fig.add_trace(
+		go.Scatter(
+			x=all['date'],
+			y=all['amount'].cumsum(),
+			name='Cash Flow',
+			line=dict(color='blue')
+		),
+		row=1, col=1
+	)
+
+	hover_text = (
+		'<b>Transaction:</b> %{text}<br>'
+		'<b>Amount:</b> %{y:.2f}€<br>'
+		'<b>Date:</b> %{x}<br><extra></extra>'
+	)
+
+	income = all[all['amount'] > 0]
+	expenses = all[all['amount'] < 0]
+
+	fig.add_trace(
+		go.Scatter(
+			x=income['date'],
+			y=income['amount'],
+			mode='markers',
+			name='Income',
+			text=income['note'],
+			hovertemplate=hover_text,
+			marker=dict(color='green', size=5)
+		),
+		row=2, col=1
+	)
+
+	fig.add_trace(
+		go.Scatter(
+			x=expenses['date'],
+			y=expenses['amount'],
+			mode='markers',
+			name='Expenses',
+			text=expenses['note'],
+			hovertemplate=hover_text,
+			marker=dict(color='red', size=5)
+		),
+		row=2, col=1
+	)
+
+	fig.update_layout(
+		showlegend=True,
+		title_text = 'Bank Transactions Analysis',
+		hovermode = 'closest',
+		font =dict(
+			family = 'Inter,sans-serif'
+		),
+		yaxis_title = 'Cash flow (€)',
+		yaxis2_title = 'Transactions (€)',
+		xaxis2_title = 'Date',
+	)
+
+	# Update yaxis properties
+	fig.update_yaxes(title_text='Cumulative Amount', row=1, col=1)
+	fig.update_yaxes(title_text='Transaction Amount', row=2, col=1)
+
+	fig_config = {
+		'displaylogo': False,
+		'toImageButtonOptions': {
+			'format': 'svg'
+		}
+	}
+
+	if dry_run:
+		fig.show(config=fig_config)
+	else:
+		pio.write_html(
+			fig,
+			os.path.join(output_dir, 'Bepp_timeline.html'),
+		)
+		print(f'[bold green]Success![/bold green] `Bepp_timeline.html` exported in {os.path.abspath(output_dir)}')
 
 def main():
 	parser = argparse.ArgumentParser(
@@ -168,21 +258,7 @@ def main():
 		all.info()
 
 	if args.timeline:
-		income_all = all[all['amount'] > 0]
-		expenses_all = all[all['amount'] < 0]
-		plt.figure()
-		plt.scatter(income_all['date'], income_all['amount'], color='green', label='Income', alpha=0.5)
-		plt.scatter(expenses_all['date'], expenses_all['amount'], color='red', label='Expenses', alpha=0.5)
-		plt.plot(all['date'], all['amount'].cumsum(), 'b-', label='Cash flow')
-		plt.title('Cash Flow Over Time')
-		plt.xlabel('Date')
-		plt.ylabel('Amount')
-		#plt.grid(True)
-		plt.legend()
-		plt.gca().xaxis.set_major_formatter(mdt.DateFormatter('%Y-%m-%d'))
-		plt.gcf().autofmt_xdate()
-		plt.tight_layout()
-		plt.show()
+		print_graph(all, output_dir, args.dry_run)
 
 if __name__ == '__main__':
 	main()
