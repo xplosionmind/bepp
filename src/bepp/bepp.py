@@ -3,6 +3,7 @@ import sys
 import glob
 import argparse
 import pandas as pd
+import darkdetect
 import plotly.graph_objects as go
 import plotly.io as pio
 from plotly.subplots import make_subplots
@@ -81,9 +82,15 @@ def print_graph(all, output_dir, dry_run):
 		row=2, col=1
 	)
 
+	if darkdetect.isDark():
+		template = 'plotly_dark'
+	else:
+		template = None
+
 	fig.update_layout(
 		showlegend=True,
 		title_text = 'Bank Transactions Analysis',
+		template = template,
 		hovermode = 'closest',
 		font =dict(
 			family = 'Inter,sans-serif'
