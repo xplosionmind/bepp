@@ -234,12 +234,18 @@ def main():
 	pp_files = glob.glob(os.path.join(dir, '*.CSV')) + glob.glob(os.path.join(dir, '*.csv'))
 	pp_files.sort()
 
-	if not be_files or not pp_files:
+	if not be_files and not pp_files:
 		print('No Excel files (Banca Etica’s export format) or CSV files (PayPal’s export format) found in the specified directory.')
 		sys.exit(1)
 
-	be, be_merged = process_BancaEtica(be_files, args.keep_pp_dupes)
-	pp, pp_merged = process_PayPal(pp_files)
+	if be_files:
+		if not pp_files:
+			print('No PayPal logs found, processing Banca Etica logs only…')
+		be, be_merged = process_BancaEtica(be_files, args.keep_pp_dupes)
+	if pp_files:
+		if not be_files:
+			print('No Banca Etica logs found, processing PayPal logs only…')
+		pp, pp_merged = process_PayPal(pp_files)
 
 	if any(be['currency'] != 'EUR') and args.convert_to_eur:
 		be['amount'] = pd.to_numeric(be.apply(lambda row: convert_to_eur(row['date'], row['amount'], row['currency']), axis=1))
