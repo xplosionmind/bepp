@@ -19,6 +19,82 @@ epilog = '''
 [bold]Note[/bold]: bepp assumes that inside the specified directory all Excel files are Banca Etica’s [italic]estratto conto[/italic] files, and all CSV files are PayPal transaction summaries.
 '''
 
+def process_BancaEtica(be_files, keep_dupes):
+	print('Banca Etica logs found:')
+	be_list = []
+	for f in be_files:
+		print(f'\t- \'{os.path.basename(f)}\'')
+		be_file = pd.DataFrame(pd.read_excel(
+			f,
+			parse_dates=[1, 2],
+			date_format='ISO8601'
+		))
+		be_list.append(be_file)
+
+	be = be_merged = pd.concat(be_list, ignore_index=True)
+
+	be.insert(2,'amount', be['Dare'].fillna(be['Avere']))
+	be = be[['Valuta', 'amount', 'Divisa', 'Descrizione']]
+	be = be.sort_values(by='Valuta', ascending=False)
+
+	if not keep_dupes:
+		be = be[~be['Descrizione'].str.contains(r'(?i)PayPal', regex=True)]
+
+	be_regexs = {
+		r'(?i)ADDEBITO BONIFICO .* BANKING (?P<who>.*) Bonifico disposto in.* Cro: \S+ (?P<what>.*)' : r'\g<who>, \g<what>',
+		r'(?i)BONIFICO .* FAVORE (?P<who>.*) (?:IND\.ORD|Data [R,A]).* Note: (?P<what>.*) ID\.OPER.*' : r'\g<who>, \g<what>',
+		r'(?i)BONIFICO .* FAVORE (?P<who>.*) (?:IND\.ORD|Data [R,A]).* Note: (?P<what>.*)' : r'\g<who>, \g<what>',
+		r'(?i)BONIFICO .* FAVORE (.*)' : r'\1',
+		r'(?i)Pagamenti paesi .* A (?P<who>.*) Valuta .* C\/O (?P<what>.*) CARTA N\..*' : r'\g<who>, \g<what>',
+		r'(?i)Prelievi paesi .* A (?P<who>.*) Valuta .* C\/O (?P<what>.*) CARTA N\..*' : r'PRELIEVO: \g<who>, \g<what>',
+		r'(?i)ACCREDITO VISA .* A (?P<who>.*) Valuta .* C\/O (?P<what>.*) CARTA N\..*' : r'\g<who>, \g<what>',
+		r'(?i)ADDEBITO DIRETTO CORE \S+ Prg\.Car\...\S+ \S+ (.*)' : r'\1',
+		r'(?i)PAGAMENTO NEXI.*Presso: (.*)' : r'\1',
+		r'(?i)SUMUP \*(.*)' : r'\1',
+		r'(?i)PAGAMENTI DIVERSI (.*)' : r'\1'
+	}
+
+	for pattern, replacement in be_regexs.items():
+		be['Descrizione'] = be['Descrizione'].str.replace(pattern, replacement, regex=True)
+
+	be = be.rename(columns={
+		'Valuta' : 'date',
+		'Divisa' : 'currency',
+		'Descrizione' : 'note'
+	})
+
+	return be, be_merged
+
+def process_PayPal(pp_files):
+	print('PayPal logs found:')
+	pp_list = []
+	for f in pp_files:
+		print(f'\t- \'{os.path.basename(f)}\'')
+		pp_file = pd.DataFrame(pd.read_csv(f))
+		pp_file = pp_file.dropna(axis='columns', how='all')
+		pp_list.append(pp_file)
+
+	pp = pp_merged = pd.concat(pp_list, ignore_index=True)
+
+	pp['date'] = pd.to_datetime(pp['Data'], format='%d/%m/%Y')
+	pp = pp.sort_values(by='date', ascending=False)
+
+	pp = pp[['date', 'Nome', 'Lordo', 'Valuta', 'Oggetto', 'Messaggio']]
+	pp = pp.dropna(subset=['Nome'])
+
+	pp['Lordo'] = pd.to_numeric(pp['Lordo'].str.replace('.', '', regex=False).str.replace(',', '.', regex=False))
+
+	pp['Messaggio'] = pp['Nome'] + pp['Messaggio'].apply(lambda msg: f', {msg}' if pd.notna(msg) else '') + pp['Oggetto'].apply(lambda obj: f', {obj}' if pd.notna(obj) else '')
+	pp.drop(['Nome', 'Oggetto'], axis='columns', inplace=True)
+
+	pp = pp.rename(columns={
+		'Lordo' : 'amount',
+		'Valuta' : 'currency',
+		'Messaggio' : 'note'
+	})
+
+	return pp, pp_merged
+
 def convert_to_eur(date ,amount, currency):
 	c = CurrencyConverter(fallback_on_missing_rate=True)
 	if currency != 'EUR':
@@ -162,79 +238,12 @@ def main():
 		print('No Excel files (Banca Etica’s export format) or CSV files (PayPal’s export format) found in the specified directory.')
 		sys.exit(1)
 
-	print('Banca Etica logs found:')
-	be_list = []
-	for f in be_files:
-		print(f'\t- \'{os.path.basename(f)}\'')
-		be_file = pd.DataFrame(pd.read_excel(
-			f,
-			parse_dates=[1, 2],
-			date_format='ISO8601'
-		))
-		be_list.append(be_file)
-
-	be = be_merged = pd.concat(be_list, ignore_index=True)
-
-	be.insert(2,'amount', be['Dare'].fillna(be['Avere']))
-	be = be[['Valuta', 'amount', 'Divisa', 'Descrizione']]
-	be = be.sort_values(by='Valuta', ascending=False)
-
-	if not args.keep_pp_dupes:
-		be = be[~be['Descrizione'].str.contains(r'(?i)PayPal', regex=True)]
-
-	be_regexs = {
-		r'(?i)ADDEBITO BONIFICO .* BANKING (?P<who>.*) Bonifico disposto in.* Cro: \S+ (?P<what>.*)' : r'\g<who>, \g<what>',
-		r'(?i)BONIFICO .* FAVORE (?P<who>.*) (?:IND\.ORD|Data [R,A]).* Note: (?P<what>.*) ID\.OPER.*' : r'\g<who>, \g<what>',
-		r'(?i)BONIFICO .* FAVORE (?P<who>.*) (?:IND\.ORD|Data [R,A]).* Note: (?P<what>.*)' : r'\g<who>, \g<what>',
-		r'(?i)BONIFICO .* FAVORE (.*)' : r'\1',
-		r'(?i)Pagamenti paesi .* A (?P<who>.*) Valuta .* C\/O (?P<what>.*) CARTA N\..*' : r'\g<who>, \g<what>',
-		r'(?i)Prelievi paesi .* A (?P<who>.*) Valuta .* C\/O (?P<what>.*) CARTA N\..*' : r'PRELIEVO: \g<who>, \g<what>',
-		r'(?i)ACCREDITO VISA .* A (?P<who>.*) Valuta .* C\/O (?P<what>.*) CARTA N\..*' : r'\g<who>, \g<what>',
-		r'(?i)ADDEBITO DIRETTO CORE \S+ Prg\.Car\...\S+ \S+ (.*)' : r'\1',
-		r'(?i)PAGAMENTO NEXI.*Presso: (.*)' : r'\1',
-		r'(?i)SUMUP \*(.*)' : r'\1',
-		r'(?i)PAGAMENTI DIVERSI (.*)' : r'\1'
-	}
-
-	for pattern, replacement in be_regexs.items():
-		be['Descrizione'] = be['Descrizione'].str.replace(pattern, replacement, regex=True)
-
-	be = be.rename(columns={
-		'Valuta' : 'date',
-		'Divisa' : 'currency',
-		'Descrizione' : 'note'
-	})
+	be, be_merged = process_BancaEtica(be_files, args.keep_pp_dupes)
+	pp, pp_merged = process_PayPal(pp_files)
 
 	if any(be['currency'] != 'EUR') and args.convert_to_eur:
 		be['amount'] = pd.to_numeric(be.apply(lambda row: convert_to_eur(row['date'], row['amount'], row['currency']), axis=1))
 		be.drop('currency', axis='columns')
-
-	print('PayPal logs found:')
-	pp_list = []
-	for f in pp_files:
-		print(f'\t- \'{os.path.basename(f)}\'')
-		pp_file = pd.DataFrame(pd.read_csv(f))
-		pp_file = pp_file.dropna(axis='columns', how='all')
-		pp_list.append(pp_file)
-
-	pp = pp_merged = pd.concat(pp_list, ignore_index=True)
-
-	pp['date'] = pd.to_datetime(pp['Data'], format='%d/%m/%Y')
-	pp = pp.sort_values(by='date', ascending=False)
-
-	pp = pp[['date', 'Nome', 'Lordo', 'Valuta', 'Oggetto', 'Messaggio']]
-	pp = pp.dropna(subset=['Nome'])
-
-	pp['Lordo'] = pd.to_numeric(pp['Lordo'].str.replace('.', '', regex=False).str.replace(',', '.', regex=False))
-
-	pp['Messaggio'] = pp['Nome'] + pp['Messaggio'].apply(lambda msg: f', {msg}' if pd.notna(msg) else '') + pp['Oggetto'].apply(lambda obj: f', {obj}' if pd.notna(obj) else '')
-	pp.drop(['Nome', 'Oggetto'], axis='columns', inplace=True)
-
-	pp = pp.rename(columns={
-		'Lordo' : 'amount',
-		'Valuta' : 'currency',
-		'Messaggio' : 'note'
-	})
 
 	if any(pp['currency'] != 'EUR') and args.convert_to_eur:
 		pp['amount'] = pp.apply(lambda row: convert_to_eur(row['date'], row['amount'], row['currency']), axis=1)
