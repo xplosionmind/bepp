@@ -253,7 +253,7 @@ def main():
 		if args.note:
 			all = all['note']
 		all.to_csv(os.path.join(output_dir, 'Bepp.csv'), index=False, date_format='%Y-%m-%d')
-		print(f'[bold green]Success![/bold green] “Bepp.csv” exported in {os.path.abspath(output_dir)}')
+		print(f'[bold green]Success![/bold green] `Bepp.csv` exported in {os.path.abspath(output_dir)}')
 
 	if args.backup and not args.dry_run:
 		be_merged.to_csv(os.path.join(output_dir, 'Banca Etica - original.csv'), index=False)
@@ -261,7 +261,8 @@ def main():
 		print(f'[italic]Backup files exported in {os.path.abspath(output_dir)}[/italic]')
 
 	if args.dry_run:
-		print(all)
+		print(f'Here is the whole dataframe:\n{all}')
+		print('DataFrame information:')
 		all.info()
 
 	if args.timeline:
